@@ -19,7 +19,7 @@ const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 720;
 const LINE_DISTANCE = CANVAS_WIDTH / AMIDA_COUNT;
 const OFFSET_LINE_POS = LINE_DISTANCE / 2;
-const lineProps: LineProps[] = [];
+let lineProps: LineProps[] = [];
 const FONT_PROP = "24px san-serif";
 
 const generateRandom = (): boolean => {
@@ -168,6 +168,7 @@ const playAmida: MouseEventHandler<HTMLButtonElement> = () => {
 
 const redrawAmida = () => {
   canvas.width = CANVAS_WIDTH;
+  lineProps = [];
   initAmida();
 };
 
