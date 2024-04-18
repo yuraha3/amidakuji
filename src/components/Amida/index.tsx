@@ -23,20 +23,23 @@ const AMIDA_COUNT = Math.max(Names.length, Results.length);
 const VERTICAL_LINE_COUNT = 15;
 const VERTICAL_LINE_LENGTH = 45;
 const CANVAS_WIDTH = 800;
-const CANVAS_HEIGHT = 720;
+const CANVAS_HEIGHT = VERTICAL_LINE_COUNT * VERTICAL_LINE_LENGTH + 100;
 const LINE_DISTANCE = CANVAS_WIDTH / AMIDA_COUNT;
 const OFFSET_LINE_POS = LINE_DISTANCE / 2;
 let lineProps: LineProps[] = [];
 const FONT_PROP = "24px san-serif";
 
-const generateRandom = (): boolean => {
-  return Math.random() < 0.2;
+const PERCENT_OF_DRAW_LINE = 30;
+
+const isSucess = (rate: number): boolean => {
+  return Math.random() * 100 < rate;
 };
 
 //デバッグ用関数
 const generateRandomHue = (): number => {
   return Math.trunc(Math.random() * 360);
 };
+//デバッグ用関数
 const generateHue = (num: number): number => {
   if (num * 30 > 360) return 0;
   return num * 30;
@@ -79,17 +82,23 @@ const generateHorizontalLine = (
   ctx?.stroke();
 };
 
-// const initAdditionalHorizontalLine = () => {
-//   for (let i = 1; i <= AMIDA_COUNT; i++) {
-//     //横線の有無確認
-//     const hasHorizontalLine = lineProps.find((item) => {
-//       return item.x === i - 1 && item.type === "horizontal";
-//     });
-//     if (!hasHorizontalLine) {
+const calcPos: (x: number, y: number) => AmidaPosition = (
+  x: number,
+  y: number
+) => {
+  const x1 = OFFSET_LINE_POS + x * LINE_DISTANCE;
+  const y1 = (y - 1) * VERTICAL_LINE_LENGTH;
+  const x2 = OFFSET_LINE_POS + (x + 1) * LINE_DISTANCE;
+  const y2 = y * VERTICAL_LINE_LENGTH;
 
-//     }
-//   }
-// };
+  const pos: AmidaPosition = {
+    x1: x1,
+    x2: x2,
+    y1: y1,
+    y2: y2,
+  };
+  return pos;
+};
 
 const initCanvas = () => {
   canvas = document.getElementById("canvas") as HTMLCanvasElement;
@@ -125,7 +134,7 @@ const initAmida = () => {
         !hasPrevHorizontalLine &&
         j !== 1 &&
         i !== AMIDA_COUNT &&
-        generateRandom()
+        isSucess(PERCENT_OF_DRAW_LINE)
       ) {
         //初回、最後ではない場合かつ前回横線を引いていない場合は、
         //乱数判定がtrueになった場合のみ横線を引く。
@@ -150,30 +159,10 @@ const initAmida = () => {
       LINE_DISTANCE * 0.85
     );
   }
-  // initAdditionalHorizontalLine();
-};
-
-const calcPos: (x: number, y: number) => AmidaPosition = (
-  x: number,
-  y: number
-) => {
-  const x1 = OFFSET_LINE_POS + x * LINE_DISTANCE;
-  const y1 = (y - 1) * VERTICAL_LINE_LENGTH;
-  const x2 = OFFSET_LINE_POS + (x + 1) * LINE_DISTANCE;
-  const y2 = y * VERTICAL_LINE_LENGTH;
-
-  const pos: AmidaPosition = {
-    x1: x1,
-    x2: x2,
-    y1: y1,
-    y2: y2,
-  };
-  return pos;
 };
 
 const playAmida = async (id: number) => {
   let x = id;
-  // for (let i = 1; i < VERTICAL_LINE_COUNT; i++) {
   for await (const i of [...Array(VERTICAL_LINE_COUNT)].keys()) {
     console.log(`x=${x}, i=${i}`);
     const lineColor = `hsl(${(360 / AMIDA_COUNT) * id} 100 50)`;
@@ -219,7 +208,6 @@ const playAmida = async (id: number) => {
       lineColor
     );
     await sleep(500).then(() => console.log(i));
-    // console.log(`drawVert x1=${x1} x2=${x2} x=${x}, i=${i}`);
   }
 };
 
@@ -246,8 +234,11 @@ function Amida() {
   }, []);
   return (
     <div>
-      <button onClick={playAmidas}>start</button>
-      <button onClick={redrawAmida}>reset</button>
+      <div>
+        <button onClick={playAmidas}>start</button>
+        {/* todo: あみだプレイ中はリセットボタンを押せないようにする */}
+        <button onClick={redrawAmida}>reset</button>
+      </div>
       <canvas width={CANVAS_WIDTH} height={CANVAS_HEIGHT} id="canvas"></canvas>
     </div>
   );
