@@ -1,4 +1,4 @@
-import { MouseEventHandler, useEffect } from "react";
+import { MouseEventHandler, useEffect, useState } from "react";
 import Names from "./components/names.js";
 import Results from "./components/results.js";
 
@@ -211,10 +211,12 @@ const playAmida = async (id: number) => {
   }
 };
 
-const playAmidas: MouseEventHandler<HTMLButtonElement> = () => {
+const playAmidas: MouseEventHandler<HTMLButtonElement> = async () => {
+  const promiseAll = [];
   for (let i = 0; i < AMIDA_COUNT; i++) {
-    playAmida(i);
+    promiseAll.push(playAmida(i));
   }
+  await Promise.all(promiseAll);
 };
 
 const redrawAmida = () => {
@@ -225,6 +227,8 @@ const redrawAmida = () => {
 
 function Amida() {
   let loading: boolean = false;
+  //todo: playAmida内でプレイ中かどうか管理したい
+  const [isPlayAmida, setIsPlayAmida] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -237,7 +241,9 @@ function Amida() {
       <div>
         <button onClick={playAmidas}>start</button>
         {/* todo: あみだプレイ中はリセットボタンを押せないようにする */}
-        <button onClick={redrawAmida}>reset</button>
+        <button onClick={redrawAmida} disabled={isPlayAmida}>
+          reset
+        </button>
       </div>
       <canvas width={CANVAS_WIDTH} height={CANVAS_HEIGHT} id="canvas"></canvas>
     </div>
