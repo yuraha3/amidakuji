@@ -1,1 +1,7 @@
-export default ["カービィ", null, null, "ワドルディ", null, null];
+export default [
+  "カービィ",
+  "バンダナワドルディ",
+  "デデデ大王",
+  "メタナイト",
+  "マホロア",
+];

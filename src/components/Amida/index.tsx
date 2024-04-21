@@ -20,16 +20,18 @@ let canvas: HTMLCanvasElement;
 let ctx: CanvasRenderingContext2D | null;
 
 const AMIDA_COUNT = Math.max(Names.length, Results.length);
-const VERTICAL_LINE_COUNT = 15;
-const VERTICAL_LINE_LENGTH = 45;
+const VERTICAL_LINE_COUNT = 30;
+const VERTICAL_LINE_LENGTH = 30;
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = VERTICAL_LINE_COUNT * VERTICAL_LINE_LENGTH + 100;
 const LINE_DISTANCE = CANVAS_WIDTH / AMIDA_COUNT;
+const OFFSET_HEIGHT = 100;
 const OFFSET_LINE_POS = LINE_DISTANCE / 2;
 let lineProps: LineProps[] = [];
 const FONT_PROP = "24px san-serif";
 
-const PERCENT_OF_DRAW_LINE = 30;
+const PERCENT_OF_DRAW_LINE = 50;
+const PLAY_AMIDA_SPEED = 100;
 
 const isSucess = (rate: number): boolean => {
   return Math.random() * 100 < rate;
@@ -87,9 +89,9 @@ const calcPos: (x: number, y: number) => AmidaPosition = (
   y: number
 ) => {
   const x1 = OFFSET_LINE_POS + x * LINE_DISTANCE;
-  const y1 = (y - 1) * VERTICAL_LINE_LENGTH;
+  const y1 = OFFSET_HEIGHT + (y - 1) * VERTICAL_LINE_LENGTH;
   const x2 = OFFSET_LINE_POS + (x + 1) * LINE_DISTANCE;
-  const y2 = y * VERTICAL_LINE_LENGTH;
+  const y2 = OFFSET_HEIGHT + y * VERTICAL_LINE_LENGTH;
 
   const pos: AmidaPosition = {
     x1: x1,
@@ -100,6 +102,21 @@ const calcPos: (x: number, y: number) => AmidaPosition = (
   return pos;
 };
 
+const drawText = (
+  text: string,
+  x: number,
+  y: number,
+  width: number,
+  color: string
+) => {
+  const _text = text ?? "";
+  //テキストを入れる
+  ctx!.font = FONT_PROP;
+  ctx!.textAlign = "center";
+  ctx!.fillStyle = color;
+  ctx?.fillText(_text, x, y, width);
+};
+
 const initCanvas = () => {
   canvas = document.getElementById("canvas") as HTMLCanvasElement;
   ctx = canvas.getContext("2d");
@@ -107,16 +124,16 @@ const initCanvas = () => {
 
 const initAmida = () => {
   for (let i = 1; i <= AMIDA_COUNT; i++) {
+    //名前を表示する
+    const pos = calcPos(i - 1, 0);
+    drawText(Names[i - 1], pos.x1, pos.y1 - 10, LINE_DISTANCE * 0.85, "black");
+
     //線を引く
-    for (let j = 1; j <= VERTICAL_LINE_COUNT - 1; j++) {
-      const x1 = OFFSET_LINE_POS + (i - 1) * LINE_DISTANCE;
-      const y1 = (j - 1) * VERTICAL_LINE_LENGTH;
-      const x2 = OFFSET_LINE_POS + i * LINE_DISTANCE;
-      const y2 = j * VERTICAL_LINE_LENGTH;
-      // const color = `hsl(${Math.trunc(360 - j * 30)} 85 66)`;
+    for (let j = 1; j <= VERTICAL_LINE_COUNT; j++) {
+      const pos = calcPos(i - 1, j - 1);
       const color = `black`;
       //縦線を引く
-      generateVerticalLine(ctx, x1, y1, y2, color);
+      generateVerticalLine(ctx, pos.x1, pos.y1, pos.y2, color);
       lineProps.push({
         x: i,
         y: j,
@@ -139,9 +156,7 @@ const initAmida = () => {
         //初回、最後ではない場合かつ前回横線を引いていない場合は、
         //乱数判定がtrueになった場合のみ横線を引く。
         //横線を引いたらフラグを立てる
-        generateHorizontalLine(ctx, x1, x2, y1, color);
-
-        console.log(i, j);
+        generateHorizontalLine(ctx, pos.x1, pos.x2, pos.y1, color);
         lineProps.push({
           x: i,
           y: j,
@@ -150,32 +165,43 @@ const initAmida = () => {
         });
       }
     }
-    //テキストを入れる
-    ctx!.font = FONT_PROP;
-    ctx?.fillText(
+    drawText(
       Results[i - 1],
-      (i - 1) * LINE_DISTANCE,
-      VERTICAL_LINE_COUNT * VERTICAL_LINE_LENGTH,
-      LINE_DISTANCE * 0.85
+      i * LINE_DISTANCE - LINE_DISTANCE / 2,
+      OFFSET_HEIGHT + VERTICAL_LINE_COUNT * VERTICAL_LINE_LENGTH,
+      LINE_DISTANCE * 0.85,
+      "black"
     );
   }
 };
 
 const playAmida = async (id: number) => {
   let x = id;
+  const hue = (360 / AMIDA_COUNT) * id;
+  const lineColor = `hsl(${hue} 100 50)`;
+
+  //名前のテキスト描写
+  const namePos = calcPos(x, 0);
+  drawText(
+    Names[x],
+    namePos.x1,
+    namePos.y1 - 10,
+    LINE_DISTANCE * 0.85,
+    lineColor
+  );
+
   for await (const i of [...Array(VERTICAL_LINE_COUNT)].keys()) {
     console.log(`x=${x}, i=${i}`);
-    const lineColor = `hsl(${(360 / AMIDA_COUNT) * id} 100 50)`;
     const currentPos = calcPos(x, i);
 
     //x,y+1の座標の横線を検索、存在する場合は渡る(横線を引く)
     const hasHorizontalLine = lineProps.find((item) => {
-      return item.x === x + 1 && item.y === i && item.type === "horizontal";
+      return item.x === x + 1 && item.y === i + 1 && item.type === "horizontal";
     });
 
     //x-1,yの座標の横線を検索、存在する場合は渡る(横線を引く)
     const hasPrevHorizontalLine = lineProps.find((item) => {
-      return item.x === x && item.y === i && item.type === "horizontal";
+      return item.x === x && item.y === i + 1 && item.type === "horizontal";
     });
 
     if (hasHorizontalLine) {
@@ -207,16 +233,29 @@ const playAmida = async (id: number) => {
       currentPos2.y2,
       lineColor
     );
-    await sleep(500).then(() => console.log(i));
+    await sleep(PLAY_AMIDA_SPEED).then(() => console.log(`play${id}`));
   }
+  console.log(`id: ${id}`);
+
+  //結果のテキスト表示
+  const resultPos = calcPos(x, VERTICAL_LINE_COUNT + 1);
+  drawText(
+    Results[x],
+    resultPos.x1,
+    resultPos.y1,
+    LINE_DISTANCE * 0.85,
+    lineColor
+  );
 };
 
-const playAmidas: MouseEventHandler<HTMLButtonElement> = async () => {
+const playAmidas = async (setPlay: (isPlay: boolean) => void) => {
+  setPlay(true);
   const promiseAll = [];
   for (let i = 0; i < AMIDA_COUNT; i++) {
     promiseAll.push(playAmida(i));
   }
   await Promise.all(promiseAll);
+  setPlay(false);
 };
 
 const redrawAmida = () => {
@@ -229,6 +268,9 @@ function Amida() {
   let loading: boolean = false;
   //todo: playAmida内でプレイ中かどうか管理したい
   const [isPlayAmida, setIsPlayAmida] = useState(false);
+  const setPlayState = (isPlay: boolean) => {
+    setIsPlayAmida(isPlay);
+  };
 
   useEffect(() => {
     if (loading) return;
@@ -239,7 +281,13 @@ function Amida() {
   return (
     <div>
       <div>
-        <button onClick={playAmidas}>start</button>
+        <button
+          onClick={() => {
+            playAmidas(setPlayState);
+          }}
+        >
+          start
+        </button>
         {/* todo: あみだプレイ中はリセットボタンを押せないようにする */}
         <button onClick={redrawAmida} disabled={isPlayAmida}>
           reset

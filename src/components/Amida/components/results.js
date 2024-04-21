@@ -1,9 +1,1 @@
-export default [
-  "VEGETABLE VALLEY",
-  "ICECREAM ISLAND",
-  "BUTTER BUILDING",
-  "GRAPE GARDEN",
-  "YOGURT YARD",
-  "ORANGE OCEAN",
-  "RAINBOW RESORT",
-];
+export default ["ピカチュウ", "イーブイ", "ホゲータ", "クワッス", "ニャオハ"];
