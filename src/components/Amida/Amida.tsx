@@ -235,25 +235,20 @@ type AmidaProps = {
 };
 
 function Amida({ resetAmida, lineProps }: AmidaProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null); // ★
-  // const [canvas, setCanvas] = useState<CanvasTypes>(null);
-  // const [ctx, setCtx] = useState<CtxTypes>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPlayAmida, setIsPlayAmida] = useState(false);
   const setPlayState = (isPlay: boolean) => {
     setIsPlayAmida(isPlay);
   };
 
   const getContext = (): CanvasRenderingContext2D => {
-    // ★
     const canvas: any = canvasRef.current;
     return canvas.getContext("2d");
   };
 
   useEffect(() => {
-    // setCanvas(document.getElementById("canvas") as CanvasTypes);
-    // setCtx(canvas!.getContext("2d"));
-    initAmida(getContext(), lineProps); // ★
-  }, [lineProps]); // ☆
+    initAmida(getContext(), lineProps);
+  }, [lineProps]);
 
   return (
     <div>
@@ -265,7 +260,6 @@ function Amida({ resetAmida, lineProps }: AmidaProps) {
         >
           start
         </button>
-        {/* todo: あみだプレイ中はリセットボタンを押せないようにする */}
         <button
           onClick={() => {
             resetAmida(canvasRef.current);
@@ -281,23 +275,8 @@ function Amida({ resetAmida, lineProps }: AmidaProps) {
         id="canvas"
         ref={canvasRef}
       ></canvas>
-      {/*★ref定義追加 */}
     </div>
   );
 }
 
 export default Amida;
-
-/**
- * ★canvasとcontextが取得できない問題
- * TSXのcanvas要素にrefを設定し、そのrefを使ってgetContextメソッドでcanvasのcontextを取得するようにした。
- *
- * 参考: canvasのrefを取得する例 https://qiita.com/h-kagata/items/8639e7c330c3e84db2f9
- * 参考: useRefとuseStateの違い https://qiita.com/kim_t0814/items/58fdf441bd9e4a1ae4d3
- *
- * ☆初回表示時にあみだの線が表示されない問題
- * useEffectの第二引数にlinePropsを指定していなかったため、初回表示時にあみだの線が表示されなかった。
- *
- * 残存バグ
- * - 初回表示時に表示されるあみだの列数が少ない。startボタンを押すと正しく表示される。
- */
