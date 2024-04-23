@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import Names from "./components/names.js";
-import Results from "./components/results.js";
+
 import {
   FONT_PROP,
   AMIDA_COUNT,
@@ -12,7 +11,6 @@ import {
   OFFSET_HEIGHT,
   OFFSET_WIDTH,
   VERTICAL_LINE_LENGTH,
-  PERCENT_OF_DRAW_LINE,
 } from "./const.ts";
 import { LineProps, AmidaPosition, CanvasTypes } from "./types.ts";
 
@@ -101,7 +99,13 @@ const generateHorizontalLine = (
   ctx?.stroke();
 };
 
-const playAmida = async (ctx: CtxTypes, id: number, lineProps: LineProps[]) => {
+const playAmida = async (
+  ctx: CtxTypes,
+  id: number,
+  lineProps: LineProps[],
+  names: string[],
+  results: string[]
+) => {
   let row = id;
   const hue = (360 / AMIDA_COUNT) * id;
   const lineColor = `hsla(${hue}, 100%, 50%, 1.0)`;
@@ -110,7 +114,7 @@ const playAmida = async (ctx: CtxTypes, id: number, lineProps: LineProps[]) => {
   const namePos = calcPos(row, 0);
   drawText(
     ctx,
-    Names[row],
+    names[row],
     namePos.x1,
     namePos.y1 - 10,
     LINE_DISTANCE * 0.85,
@@ -161,7 +165,7 @@ const playAmida = async (ctx: CtxTypes, id: number, lineProps: LineProps[]) => {
   const resultPos = calcPos(row, VERTICAL_LINE_COUNT);
   drawText(
     ctx,
-    Results[row],
+    results[row],
     resultPos.x1,
     resultPos.y2,
     LINE_DISTANCE * 0.85,
@@ -169,11 +173,16 @@ const playAmida = async (ctx: CtxTypes, id: number, lineProps: LineProps[]) => {
   );
 };
 
-const initAmida = (ctx: CtxTypes, lineProps: LineProps[]) => {
+const initAmida = (
+  ctx: CtxTypes,
+  lineProps: LineProps[],
+  names: string[],
+  results: string[]
+) => {
   const color = "black";
 
   //名前テキストを描写する
-  Names.forEach((name: string, index: number) => {
+  names.forEach((name: string, index: number) => {
     const namePos = calcPos(index, 0);
     drawText(
       ctx,
@@ -186,7 +195,7 @@ const initAmida = (ctx: CtxTypes, lineProps: LineProps[]) => {
   });
 
   //結果テキストを描写する
-  Results.forEach((result: string, index: number) => {
+  results.forEach((result: string, index: number) => {
     const resultPos = calcPos(index, VERTICAL_LINE_COUNT);
     drawText(
       ctx,
@@ -216,14 +225,16 @@ const initAmida = (ctx: CtxTypes, lineProps: LineProps[]) => {
 const playAmidas = async (
   ctx: CtxTypes,
   setPlay: (isPlay: boolean) => void,
-  lineProps: LineProps[]
+  lineProps: LineProps[],
+  names: string[],
+  results: string[]
 ) => {
   setPlay(true);
   const promiseAll = [];
   for (let i = 0; i < AMIDA_COUNT; i++) {
     //名前が入ってない場合はあみだプレイしない
-    if (!Names[i]) continue;
-    promiseAll.push(playAmida(ctx, i, lineProps));
+    if (!names[i]) continue;
+    promiseAll.push(playAmida(ctx, i, lineProps, names, results));
   }
   await Promise.all(promiseAll);
   setPlay(false);
@@ -232,9 +243,11 @@ const playAmidas = async (
 type AmidaProps = {
   resetAmida: (canvas: CanvasTypes) => void;
   lineProps: LineProps[];
+  names: string[];
+  results: string[];
 };
 
-function Amida({ resetAmida, lineProps }: AmidaProps) {
+function Amida({ resetAmida, lineProps, names, results }: AmidaProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPlayAmida, setIsPlayAmida] = useState(false);
   const setPlayState = (isPlay: boolean) => {
@@ -247,7 +260,7 @@ function Amida({ resetAmida, lineProps }: AmidaProps) {
   };
 
   useEffect(() => {
-    initAmida(getContext(), lineProps);
+    initAmida(getContext(), lineProps, names, results);
   }, [lineProps]);
 
   return (
@@ -255,7 +268,7 @@ function Amida({ resetAmida, lineProps }: AmidaProps) {
       <div>
         <button
           onClick={() => {
-            playAmidas(getContext(), setPlayState, lineProps);
+            playAmidas(getContext(), setPlayState, lineProps, names, results);
           }}
         >
           start

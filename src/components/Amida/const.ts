@@ -1,5 +1,5 @@
-import Names from "./components/names.js";
-import Results from "./components/results.js";
+import Names from "./data/names.js";
+import Results from "./data/results.js";
 
 //todo: 設定(config画面)で変えられるようにしたい
 export const AMIDA_COUNT = Math.max(Names.length, Results.length);

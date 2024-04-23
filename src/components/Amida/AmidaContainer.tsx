@@ -1,5 +1,6 @@
 import { MouseEventHandler, useEffect, useState } from "react";
-
+import Names from "./data/names.js";
+import Results from "./data/results.js";
 import Amida from "./Amida.tsx";
 import { CanvasTypes, LineProps } from "./types.ts";
 import {
@@ -65,7 +66,12 @@ function AmidaContainer() {
   }, []);
   return (
     <div>
-      <Amida resetAmida={resetAmida} lineProps={lineProps} />
+      <Amida
+        resetAmida={resetAmida}
+        lineProps={lineProps}
+        names={Names}
+        results={Results}
+      />
     </div>
   );
 }
