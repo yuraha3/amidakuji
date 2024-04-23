@@ -31,15 +31,14 @@ const initLineProps = (): LineProps[] => {
         );
       });
 
+      //初回、最後ではない場合かつ前回横線を引いていない場合は、
+      //乱数判定がtrueになった場合のみ横線を引く。
       if (
         !hasPrevHorizontalLine &&
         row !== 0 &&
         col !== AMIDA_COUNT - 1 &&
         isSuccess(PERCENT_OF_DRAW_LINE)
       ) {
-        //初回、最後ではない場合かつ前回横線を引いていない場合は、
-        //乱数判定がtrueになった場合のみ横線を引く。
-        //横線を引いたらフラグを立てる
         props.push({
           x: col,
           y: row,
@@ -51,41 +50,6 @@ const initLineProps = (): LineProps[] => {
   return props;
 };
 
-// function Amida() {
-//   let loading: boolean = false;
-//   const [isPlayAmida, setIsPlayAmida] = useState(false);
-//   const setPlayState = (isPlay: boolean) => {
-//     setIsPlayAmida(isPlay);
-//   };
-
-//   useEffect(() => {
-//     if (loading) return;
-//     initCanvas();
-//     resetAmida();
-//     loading = true;
-//   }, []);
-//   return (
-//     <div>
-//       <div>
-//         <button
-//           onClick={() => {
-//             playAmidas(setPlayState);
-//           }}
-//         >
-//           start
-//         </button>
-//         {/* todo: あみだプレイ中はリセットボタンを押せないようにする */}
-//         <button onClick={resetAmida} disabled={isPlayAmida}>
-//           reset
-//         </button>
-//       </div>
-//       <canvas width={CANVAS_WIDTH} height={CANVAS_HEIGHT} id="canvas"></canvas>
-//     </div>
-//   );
-// }
-
-// export default Amida;
-
 function AmidaContainer() {
   const [lineProps, setLineProps] = useState<LineProps[]>([]);
 
@@ -94,9 +58,6 @@ function AmidaContainer() {
     canvas.width = CANVAS_WIDTH;
     setLineProps(initLineProps());
   };
-
-  // const _props = initLineProps();
-  // setLineProps(_props);
 
   useEffect(() => {
     const _props = initLineProps();
